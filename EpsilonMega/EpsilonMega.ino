@@ -32,8 +32,8 @@ int preDistance = 0;
 
 void setup()
 {
-  Serial.begin(4800);
-  
+  Serial11.begin(4800);
+
   // IR receiver initialized
   if (!_initialized)
   {
@@ -71,289 +71,290 @@ void setup()
   // Move to a different coordinate
   positions[0] = 0;
   positions[1] = 0;
-
 }
 
 void loop()
 {
 
-  if (Serial.available()) {  //检测串口是否有可以读入的数据
-    detect = Serial.read();     
-    while(Serial.read() >= 0){}  
-   }
+  if (Serial11.available())
+  { //检测串口是否有可以读入的数据
+    detect = Serial1.read();
+    while (Serial1.read() >= 0)
+    {
+    }
+  }
 
-   Serial.print(detect);
- 
-  switch(detect){
+  Serial1.print(detect);
+
+  switch (detect)
+  {
   case '0':
   {
-    _direction = 'C';  
+    _direction = 'C';
     break;
   }
   case '1':
   {
-    _direction = 'y';  
+    _direction = 'y';
     break;
   }
   case '2':
   {
-    _direction = 'z';  
+    _direction = 'z';
     break;
   }
   case '4':
   {
-    _direction = 'r';  
+    _direction = 'r';
     break;
   }
   case '5':
   {
-    _direction = 'l';  
+    _direction = 'l';
     break;
   }
   case '6':
   {
-    _direction = 't';  
+    _direction = 't';
     break;
   }
   case '7':
   {
-    _direction = 'g';  
+    _direction = 'g';
     break;
   }
   case '8':
   {
-    _direction = 's';  
+    _direction = 's';
     break;
   }
   case '9':
   {
-    _direction = 'L';  
+    _direction = 'L';
     break;
   }
 
   case 'a':
   {
-    _direction = 'R';  
+    _direction = 'R';
     break;
   }
   case 'b':
   {
-    _direction = 'D';  
+    _direction = 'D';
     break;
   }
   case 'c':
   {
-    _direction = 'F';  
+    _direction = 'F';
     break;
   }
 
   case '3':
   {
 
-  _direction = 's';  
-    
-  for (int i = 0; i < rcv_count; ++i)
-  {
+    _direction = 's';
 
-    if (btnBuffer[i] < 0)
-      btnBuffer[i] += 1;
-
-    decode_results results;
-    if (all_rcv[i]->decode(&results))
+    for (int i = 0; i < rcv_count; ++i)
     {
 
-      int btn =  results.value;
-      if (i != 3 && btn == -1 && btnBuffer[i] > -1)
+      if (btnBuffer[i] < 0)
+        btnBuffer[i] += 1;
+
+      decode_results results;
+      if (all_rcv[i]->decode(&results))
       {
-        btnBuffer[i] -= 1;
+
+        int btn = results.value;
+        if (i != 3 && btn == -1 && btnBuffer[i] > -1)
+        {
+          btnBuffer[i] -= 1;
+        }
+
+        all_rcv[i]->resume();
       }
-
-      all_rcv[i] -> resume();
     }
-  }
 
-/*
+    /*
   // Magic Code
   for (int i = 0; i < 3; i++)
   {
-    Serial.println(btnBuffer[i]);
+    Serial1.println(btnBuffer[i]);
   }
 */
 
-  if (btnBuffer[0] == 0 && btnBuffer[1] == 0 && btnBuffer[2] == 0)
-  {
-    _direction = 's';
+    if (btnBuffer[0] == 0 && btnBuffer[1] == 0 && btnBuffer[2] == 0)
+    {
+      _direction = 's';
+    }
+    else if (btnBuffer[0] < 0 && btnBuffer[1] < 0 && btnBuffer[2] < 0)
+    {
+      _direction = 'g';
+    }
+    else if (btnBuffer[0] == 0 && btnBuffer[1] < 0 && btnBuffer[2] < 0)
+    {
+      _direction = 'l'; // radious small
+    }
+    else if (btnBuffer[0] == 0 && btnBuffer[1] == 0 && btnBuffer[2] < 0)
+    {
+      _direction = 'L'; // radious big
+    }
+    else if (btnBuffer[0] < 0 && btnBuffer[1] < 0 && btnBuffer[2] == 0)
+    {
+      _direction = 'r'; // radious small
+    }
+    else if (btnBuffer[0] < 0 && btnBuffer[1] == 0 && btnBuffer[2] == 0)
+    {
+      _direction = 'R'; // radious big
+    }
+    break;
   }
-  else if (btnBuffer[0] < 0 && btnBuffer[1] < 0 && btnBuffer[2] < 0)
-  {
-    _direction = 'g';
-  }
-  else if (btnBuffer[0] == 0 && btnBuffer[1] < 0 && btnBuffer[2] < 0)
-  {
-    _direction = 'l'; // radious small
-  }
-  else if (btnBuffer[0] == 0 && btnBuffer[1] == 0 && btnBuffer[2] < 0)
-  {
-    _direction = 'L'; // radious big
-  }
-  else if (btnBuffer[0] < 0 && btnBuffer[1] < 0 && btnBuffer[2] == 0)
-  {
-    _direction = 'r'; // radious small
-  }
-  else if (btnBuffer[0] < 0 && btnBuffer[1] == 0 && btnBuffer[2] == 0)
-  {
-    _direction = 'R'; // radious big
-  }
-  break;
-  }
- 
+
   default:
     break;
   }
 
   switch (_direction)
   {
-    case 's':
-      break;
-    case 'g':
-      {
+  case 's':
+    break;
+  case 'g':
+  {
 
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
 
-        positions[0] += 80;
-        positions[1] -= 80;
-        
-        trackingDistance += 8;
-        break;
-      }
+    positions[0] += 80;
+    positions[1] -= 80;
 
-    case 't':
-      {
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += -80;
-        positions[1] -= -80;
-        
-        trackingDistance += 8;
-        break;
-      }
-
-    case 'l':
-      {
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 85;
-        positions[1] -= 115;
-
-        trackingDistance += 10;
-        break;
-      }
-
-    case 'r':
-      {
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 115;
-        positions[1] -= 85;
-        
-        trackingDistance += 10;
-        break;
-      }
-
-    case 'L':
-      {
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 30;
-        positions[1] -= 70;
-
-        trackingDistance += 5;
-        break;
-      }
-
-    case 'R':
-      {
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 70;
-        positions[1] -= 30;
-
-        trackingDistance += 5;
-        break;
-      }
-
-    case 'C':
-      {
-
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 100;
-        positions[1] -= -100;
-
-        trackingDistance += 0;
-        break;
-      }
-
-      case 'z': // 左转弯避障
-      {
-
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 90;
-        positions[1] -= -110;
-
-        trackingDistance += 10;
-        break;
-      }
-
-      case 'y': // 右转弯避障
-      {
-
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 110;
-        positions[1] -= -90;
-
-        trackingDistance += 10;
-        break;
-      }  
-      case 'D': // 预设舞蹈1
-      {
-
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 110;
-        positions[1] -= -90;
-
-        trackingDistance += 10;
-        break;
-      }  
-      case 'F': // 预设舞蹈2
-      {
-
-        steppers.moveTo(positions);
-        steppers.runSpeedToPosition(); // Blocks until all are in position
-
-        positions[0] += 90;
-        positions[1] -= -110;
-
-        trackingDistance += 10;
-        break;
-      }  
-
-    default:
-      break;
+    trackingDistance += 8;
+    break;
   }
 
-  
+  case 't':
+  {
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += -80;
+    positions[1] -= -80;
+
+    trackingDistance += 8;
+    break;
+  }
+
+  case 'l':
+  {
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 85;
+    positions[1] -= 115;
+
+    trackingDistance += 10;
+    break;
+  }
+
+  case 'r':
+  {
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 115;
+    positions[1] -= 85;
+
+    trackingDistance += 10;
+    break;
+  }
+
+  case 'L':
+  {
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 30;
+    positions[1] -= 70;
+
+    trackingDistance += 5;
+    break;
+  }
+
+  case 'R':
+  {
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 70;
+    positions[1] -= 30;
+
+    trackingDistance += 5;
+    break;
+  }
+
+  case 'C':
+  {
+
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 100;
+    positions[1] -= -100;
+
+    trackingDistance += 0;
+    break;
+  }
+
+  case 'z': // 左转弯避障
+  {
+
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 90;
+    positions[1] -= -110;
+
+    trackingDistance += 10;
+    break;
+  }
+
+  case 'y': // 右转弯避障
+  {
+
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 110;
+    positions[1] -= -90;
+
+    trackingDistance += 10;
+    break;
+  }
+  case 'D': // 预设舞蹈1
+  {
+
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 110;
+    positions[1] -= -90;
+
+    trackingDistance += 10;
+    break;
+  }
+  case 'F': // 预设舞蹈2
+  {
+
+    steppers.moveTo(positions);
+    steppers.runSpeedToPosition(); // Blocks until all are in position
+
+    positions[0] += 90;
+    positions[1] -= -110;
+
+    trackingDistance += 10;
+    break;
+  }
+
+  default:
+    break;
+  }
 }

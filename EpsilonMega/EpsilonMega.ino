@@ -32,7 +32,7 @@ int preDistance = 0;
 
 void setup()
 {
-  Serial11.begin(4800);
+  Serial1.begin(4800);
 
   // IR receiver initialized
   if (!_initialized)
@@ -76,7 +76,7 @@ void setup()
 void loop()
 {
 
-  if (Serial11.available())
+  if (Serial1.available())
   { //检测串口是否有可以读入的数据
     detect = Serial1.read();
     while (Serial1.read() >= 0)
